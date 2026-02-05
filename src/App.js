@@ -176,6 +176,12 @@ const readSavedUiState = () => {
   }
 };
 
+const readSavedManualAuth = () => {
+  const auth = readSavedAuth();
+  if (!auth) return null;
+  return auth;
+};
+
 // --- Badge System ---
 // --- Helper Function: Check if lesson is a mastery review milestone ---
 const isMasteryReviewMilestone = (lessonIndex) => {
@@ -348,28 +354,37 @@ export default function App() {
   };
 
   useEffect(() => {
-    const loadData = async () => { // Changed to async
+    let mounted = true;
+    const initApp = async () => {
       try {
-        // 1. Restore Auth
-        const parsedAuth = readSavedAuth();
-        if (parsedAuth) {
-          setUser(parsedAuth);
-          setUserName(parsedAuth.displayName || '');
-          setIsAuthenticated(true);
-          if (parsedAuth.isTeacher) setIsTeacherAuthorized(true);
-          setAuthReady(true);
-          await fetchRemoteForUser(parsedAuth);
-        } else {
-          setAuthReady(true);
+        let resolvedUser = null;
+
+        if (HAS_SUPABASE) {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (!error && session?.user) {
+            const u = session.user;
+            resolvedUser = { uid: u.id, displayName: u.user_metadata?.displayName || u.email || '', isTeacher: u.user_metadata?.isTeacher || false };
+          }
         }
+
+        if (!resolvedUser) {
+          const manual = readSavedManualAuth();
+          if (manual) resolvedUser = manual;
+        }
+
+        if (mounted && resolvedUser) {
+          setUser(resolvedUser);
+          setUserName(resolvedUser.displayName || '');
+          setIsAuthenticated(true);
+          if (resolvedUser.isTeacher) setIsTeacherAuthorized(true);
+          await fetchRemoteForUser(resolvedUser);
+        }
+
         // Clear any legacy cached curriculum data
         localStorage.removeItem(STORAGE_KEYS.CURRICULUM);
 
-        // 2. TRIGGER SUPABASE FETCH
-        // This is the line that was missing!
         const loadedCurriculum = await fetchCurriculum();
 
-        // 3. Load other local items
         const savedProgress = localStorage.getItem(STORAGE_KEYS.PROGRESS);
         if (savedProgress) {
           const parsed = JSON.parse(savedProgress);
@@ -382,7 +397,6 @@ export default function App() {
           setAllReminders(Array.isArray(parsed) ? parsed : []);
         }
 
-        // 4. Restore UI state after curriculum is available
         const savedUi = readSavedUiState();
         if (savedUi) {
           if (savedUi.view) setView(savedUi.view);
@@ -404,14 +418,15 @@ export default function App() {
             setActiveLesson(restoredLesson);
           }
         }
-
       } catch (err) {
         console.error("Initialization error", err);
       } finally {
-        setAuthReady(true);
+        if (mounted) setAuthReady(true);
       }
     };
-    loadData();
+
+    initApp();
+    return () => { mounted = false; };
   }, []);
 
   const currentMaterial = useMemo(() => {
@@ -584,21 +599,19 @@ export default function App() {
     let mounted = true;
     const init = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (mounted && session?.user) {
-          const u = session.user;
-          const profile = { uid: u.id, displayName: u.user_metadata?.displayName || u.email || '', isTeacher: u.user_metadata?.isTeacher || false };
-          setUser(profile); setUserName(profile.displayName); setIsAuthenticated(true); if (profile.isTeacher) setIsTeacherAuthorized(true);
-        }
         const { data } = supabase.auth.onAuthStateChange((_event, session) => {
           if (session?.user) {
             const u = session.user;
             const profile = { uid: u.id, displayName: u.user_metadata?.displayName || u.email || '', isTeacher: u.user_metadata?.isTeacher || false };
+            if (!mounted) return;
             setUser(profile); setUserName(profile.displayName); setIsAuthenticated(true); if (profile.isTeacher) setIsTeacherAuthorized(true);
             localStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify(profile));
             localStorage.setItem(STORAGE_KEYS.AUTH_STATUS, 'true');
             localStorage.setItem(STORAGE_KEYS.USER_NAME, profile.displayName || '');
           } else {
+            const manual = readSavedManualAuth();
+            if (manual) return; // keep manual login if Supabase hasn't initialized yet
+            if (!mounted) return;
             setUser(null); setIsAuthenticated(false); setIsTeacherAuthorized(false); setUserName('');
             localStorage.removeItem(STORAGE_KEYS.AUTH);
             localStorage.removeItem(STORAGE_KEYS.AUTH_STATUS);
