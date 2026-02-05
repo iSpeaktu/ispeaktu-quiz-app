@@ -836,10 +836,10 @@ export default function App() {
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto p-4 md:p-8">
+      <main className="max-w-screen-xl mx-auto p-4 md:p-8">
         {view === 'student' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-6">
-            <div className="space-y-4">
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="space-y-4 lg:w-64 lg:flex-none">
               {studentReminders.length > 0 && (
                 <section className="bg-amber-50 border-2 border-amber-200 p-6 rounded-[2rem] shadow-lg shadow-amber-100/50 animate-in slide-in-from-top-4">
                   <div className="flex items-center gap-3 mb-4"><div className="bg-amber-500 text-white p-2 rounded-xl"><BellRing size={20} /></div><h3 className="font-black text-amber-900">Action Required</h3></div>
@@ -859,97 +859,80 @@ export default function App() {
               
               <section className="space-y-3">
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Study Materials</p>
-                {curriculum && curriculum.length > 0 && materialsList && materialsList.length > 0 ? materialsList.map(material => {
-                  const perc = material.totalLessons > 0 ? Math.round((material.completedLessons / material.totalLessons) * 100) : 0;
-                  const isSelected = selectedMaterialId === material.id;
-                  const isBusiness = material.id === 'business-english';
-                  const isConversational = String(material.id).toLowerCase().includes('conversational');
-                  return (
-                    <button
-                      key={material.id}
-                      onClick={() => setSelectedMaterialId(material.id)}
-                      className={`w-full px-4 py-3 rounded-xl border text-left transition-all duration-300 flex items-center justify-between bg-white 
+                {curriculum && curriculum.length > 0 && materialsList && materialsList.length > 0 ? (
+                  <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
+                    {materialsList.map(material => {
+                      const perc = material.totalLessons > 0 ? Math.round((material.completedLessons / material.totalLessons) * 100) : 0;
+                      const isSelected = selectedMaterialId === material.id;
+                      return (
+                        <button
+                          key={material.id}
+                          onClick={() => setSelectedMaterialId(material.id)}
+                          className={`shrink-0 lg:w-full px-4 py-2.5 rounded-full lg:rounded-xl border text-left transition-all duration-300 flex items-center justify-between bg-white 
     ${isSelected ? 'border-transparent' : 'border-slate-200 hover:border-slate-300'}`}
-                      style={isSelected ? {
+                          style={isSelected ? {
     backgroundColor: '#FFFFFF',
     borderColor: '#E0E7FF',
     boxShadow: `0 6px 16px ${THEME.colors.primary}22`
   } : {}}
-                    >
-                      <div className={`font-extrabold text-sm truncate`} style={isSelected ? { color: THEME.colors.primary } : {}}>
-                        {String(material.name || 'Untitled Material')}
-                      </div>
-                      <div className={`ml-3 px-2 py-0.5 rounded-full text-[10px] font-black`} style={isSelected ? { backgroundColor: THEME.colors.primary, color: '#fff' } : { backgroundColor: '#F1F5F9', color: '#64748B' }}>
-                        {perc}%
-                      </div>
-                    </button>
-                  );
-                }) : <p className="text-xs text-slate-400 italic px-2 py-4">{curriculum && curriculum.length === 0 ? 'No materials available yet. Please wait while materials are loading...' : 'No materials available yet.'}</p>}
-              </section>
-
-              <section className="p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group border-2" style={{backgroundColor: THEME.colors.primary, borderColor: THEME.colors.primary}}>
-                <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                {/* --- Gold Award Icon with Shine --- */}
-                <div className="relative inline-block mb-4">
-                  <Award 
-                    size={40} 
-                    style={{
-                      stroke: 'url(#goldGradient)',
-                      filter: 'drop-shadow(0px 0px 8px rgba(212, 175, 55, 0.5))'
-                    }}
-                    className="animate-pulse"
-                  />
-                  <svg width="0" height="0" className="absolute">
-                    <defs>
-                      <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{ stopColor: '#BF953F', stopOpacity: 1 }} />
-                        <stop offset="25%" style={{ stopColor: '#FCF6BA', stopOpacity: 1 }} />
-                        <stop offset="50%" style={{ stopColor: '#B38728', stopOpacity: 1 }} />
-                        <stop offset="75%" style={{ stopColor: '#FBF5B7', stopOpacity: 1 }} />
-                        <stop offset="100%" style={{ stopColor: '#AA771C', stopOpacity: 1 }} />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-4">Global Standing</h3>
-                
-                {/* Prominent Rank Display */}
-                <div className="mb-6 flex items-center justify-between">
-                  <div className="flex flex-col items-start">
-                    <p className="text-[10px] uppercase font-bold opacity-60 mb-1">Your Rank</p>
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-6xl font-black text-white">#{userRank}</p>
-                      <p className="text-sm font-bold opacity-70">of {totalStudents} students</p>
-                    </div>
+                        >
+                          <div className={`font-semibold text-sm truncate`} style={isSelected ? { color: THEME.colors.primary } : {}}>
+                            {String(material.name || 'Untitled Material')}
+                          </div>
+                          <div className={`ml-3 px-2 py-0.5 rounded-full text-[10px] font-black`} style={isSelected ? { backgroundColor: THEME.colors.primary, color: '#fff' } : { backgroundColor: '#F1F5F9', color: '#64748B' }}>
+                            {perc}%
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                  <div className="text-6xl opacity-20">🏆</div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white text-black p-4 rounded-2xl border border-white">
-                    <p className="text-[10px] uppercase font-bold opacity-60">Avg Accuracy</p>
-                    <p className="text-2xl font-black">{averageScore}%</p>
-                  </div>
-                  <div className="bg-white text-black p-4 rounded-2xl border border-white">
-                    <p className="text-[10px] uppercase font-bold opacity-60">Unique Lessons</p>
-                    <p className="text-2xl font-black">{new Set(studentProgress.filter(p => p.verified).map(p => p.lesson_id)).size}</p>
-                  </div>
-                  <div className="bg-white text-black p-4 rounded-2xl border border-white">
-                    <p className="text-[10px] uppercase font-bold opacity-60">Total Quizzes Taken</p>
-                    <p className="text-2xl font-black">{totalQuizzesTaken}</p>
-                  </div>
-                  <div className="bg-white text-black p-4 rounded-2xl border border-white">
-                    <p className="text-[10px] uppercase font-bold opacity-60">Retakes</p>
-                    <p className="text-2xl font-black">{totalQuizzesTaken - new Set(studentProgress.filter(p => p.verified).map(p => p.lesson_id)).size}</p>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic px-2 py-4">{curriculum && curriculum.length === 0 ? 'No materials available yet. Please wait while materials are loading...' : 'No materials available yet.'}</p>
+                )}
               </section>
             </div>
 
-            <div className="lg:col-span-2 space-y-6">
+            <div className="flex-1 space-y-6">
+              <section className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-6 md:p-8">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                  <div>
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Current Material</p>
+                    <h2 className="text-3xl md:text-4xl font-black text-slate-900">{String(currentMaterial?.name || 'Untitled Material')}</h2>
+                    <p className="text-slate-500 text-sm mt-2">{String(currentMaterial?.description || 'No description available')}</p>
+                  </div>
+                  <div className="bg-slate-900 text-white rounded-[2rem] p-6 w-full lg:w-[360px] shadow-xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-[10px] uppercase font-black tracking-widest text-slate-300">Current Status</p>
+                      <span className="text-xs font-black text-slate-300">{averageScore}% Avg</span>
+                    </div>
+                    <div className="flex items-baseline gap-2 mb-4">
+                      <p className="text-5xl font-black">#{userRank}</p>
+                      <p className="text-xs font-bold text-slate-300">of {totalStudents}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white/10 rounded-xl p-3">
+                        <p className="text-[10px] uppercase font-black text-slate-300">Lessons</p>
+                        <p className="text-lg font-black">{new Set(studentProgress.filter(p => p.verified).map(p => p.lesson_id)).size}</p>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-3">
+                        <p className="text-[10px] uppercase font-black text-slate-300">Quizzes</p>
+                        <p className="text-lg font-black">{totalQuizzesTaken}</p>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-3">
+                        <p className="text-[10px] uppercase font-black text-slate-300">Retakes</p>
+                        <p className="text-lg font-black">{totalQuizzesTaken - new Set(studentProgress.filter(p => p.verified).map(p => p.lesson_id)).size}</p>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-3">
+                        <p className="text-[10px] uppercase font-black text-slate-300">Progress</p>
+                        <p className="text-lg font-black">{materialCompletion}%</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
               {currentMaterial ? (
                 <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="p-10 border-b bg-slate-50/30">
+                  <div className="p-6 md:p-10 border-b bg-slate-50/30">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                       <div>
                         <div className="flex items-center gap-3 mb-1">
@@ -997,16 +980,18 @@ export default function App() {
                       const isLocked = lockStatus?.isLocked || false;
                       
                       return (
-                        <div key={lesson.id} className="p-8 flex items-center justify-between hover:bg-slate-50 transition-all group">
-                          <div className="flex items-center gap-6 flex-1">
+                        <div key={lesson.id} className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-all group">
+                          <div className="flex items-center gap-4 sm:gap-6 flex-1">
                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 transition-all ${isVerified ? 'text-white border-2' : record ? 'bg-white text-black border-black' : 'bg-slate-50 text-slate-400 border-dashed border-slate-300'}`} style={isVerified ? {backgroundColor: '#ECFDF5', borderColor: '#A7F3D0', boxShadow: '0 4px 12px rgba(209, 250, 229, 0.5)'} : {}}>
                               {isVerified ? <CheckCircle size={28} color="#059669" /> : idx + 1}
                             </div>
                             <div className="flex-1">
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center justify-between gap-3">
                                 <h4 className="font-semibold text-base text-slate-900">{String(lesson.title)}</h4>
-                                {isMilestone && <span className="text-[10px] px-2.5 py-1 rounded-full font-black bg-black text-white">Review</span>}
-                                {perc !== null && <span className={`text-[10px] px-2.5 py-1 rounded-full font-black ${isVerified ? 'bg-black text-white' : 'bg-slate-200 text-black'}`}>{perc}% Score</span>}
+                                <div className="flex items-center gap-2">
+                                  {isMilestone && <span className="text-[10px] px-2.5 py-1 rounded-full font-black bg-black text-white">Review</span>}
+                                  {perc !== null && <span className={`text-[10px] px-2.5 py-1 rounded-full font-black ${isVerified ? 'bg-black text-white' : 'bg-slate-200 text-black'}`}>{perc}%</span>}
+                                </div>
                               </div>
                               <div className="flex items-center gap-2 mt-1">
                                 <div className={`w-2 h-2 rounded-full ${record && !isVerified ? 'bg-slate-400' : 'bg-slate-300'}`} style={isVerified ? {backgroundColor: THEME.colors.verified, boxShadow: '0 0 0 4px rgba(5,150,105,0.08)'} : {}}></div>
@@ -1014,7 +999,7 @@ export default function App() {
                               </div>
                             </div>
                           </div>
-                          <button disabled={isLocked} onClick={() => handleStartQuiz(lesson)} className={`px-8 py-3 rounded-2xl text-sm font-black transition-all duration-300 transform active:scale-95 hover:scale-105 ${isLocked ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : record ? 'bg-white text-black border-2 border-black hover:bg-black hover:text-white' : 'bg-black text-white shadow-xl hover:bg-slate-800'}`}>
+                          <button disabled={isLocked} onClick={() => handleStartQuiz(lesson)} className={`w-full sm:w-auto min-h-[44px] px-6 sm:px-8 py-3 rounded-2xl text-sm font-black transition-all duration-300 transform active:scale-95 hover:scale-105 ${isLocked ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : record ? 'bg-white text-black border-2 border-black hover:bg-black hover:text-white' : 'bg-black text-white shadow-xl hover:bg-slate-800'}`}>
                             {isLocked ? 'Locked' : record ? 'Review / Retake' : 'Start Lesson'}
                           </button>
                         </div>
