@@ -37,23 +37,37 @@
   }
 }
 
-/* --- MOBILE ONE-LINE FIX --- */
+/* --- THE MOBILE TEXT-WRAP OVERRIDE --- */
 @media screen and (max-width: 480px) {
-  /* Targets "iSpeakTu Quiz" and main headings */
-  h1, .App-header h1, .title {
-    font-size: 1.6rem !important; 
-    white-space: nowrap !important;
-    letter-spacing: -0.5px;
+  /* 1. Force the Main Login Title "iSpeakTu Quiz" to stay on one line */
+  .text-5xl.font-extrabold {
+    font-size: 2.2rem !important; /* Shrinks "Empower Your Fluency" */
+    line-height: 1.2 !important;
   }
 
-  /* Targets "Materials", "Lessons", "Questions" */
-  h2, h3, .section-title {
-    font-size: 1.2rem !important;
-    white-space: nowrap !important;
+  /* 2. Target the Navigation/Header "iSpeakTu Quiz" */
+  nav .font-black.text-lg, 
+  .text-2xl.font-bold {
+    font-size: 1.1rem !important; /* Smaller text for mobile */
+    white-space: nowrap !important; /* NO WRAPPING */
+    display: flex !important;
+    align-items: center !important;
   }
 
-  /* Reduces side padding so text has more room */
-  .App-header {
-    padding: 0 10px;
+  /* 3. Target "Materials", "Lessons", and "Questions" labels */
+  h2, h3, p.uppercase.tracking-widest {
+    font-size: 0.9rem !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  /* 4. Fix the Material Cards so they don't look squashed */
+  .grid-cols-1 {
+    padding: 0 4px !important;
+  }
+  
+  /* Prevent large paddings from squeezing text into a second line */
+  .p-12, .p-8, .p-6 {
+    padding: 1rem !important;
   }
 }
