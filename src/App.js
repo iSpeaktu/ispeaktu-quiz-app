@@ -294,13 +294,11 @@ export default function App() {
         setCurriculum([]);
         return;
       }
-      // 1. Fetch Materials with nested Lessons and Questions
+      // 1. Fetch Materials with nested Lessons
       const { data: materialsData, error: materialsError } = await supabase
         .from('materials')
-        .select('*, lessons(*, questions(*))')
-        .order('order_index')
-        .order('order_index', { foreignTable: 'lessons' })
-        .order('order_index', { foreignTable: 'questions' });
+        .select('*, lessons(*)')
+        .order('order_index');
 
       if (materialsError) throw materialsError;
 
@@ -313,9 +311,7 @@ export default function App() {
           .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
           .map(lesson => ({
             ...lesson,
-            questions: (lesson.questions || [])
-              .slice()
-              .sort((a, b) => (a.order_index ?? a.id ?? 0) - (b.order_index ?? b.id ?? 0))
+            questions: Array.isArray(lesson.questions) ? lesson.questions : []
           }))
       }));
 
