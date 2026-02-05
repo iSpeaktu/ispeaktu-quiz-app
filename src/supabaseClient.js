@@ -12,3 +12,5 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
 export const auth = supabase.auth;
 
 export default supabase;
+
+ 
