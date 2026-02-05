@@ -73,7 +73,8 @@ const STORAGE_KEYS = {
   AUTH: 'ispeaktu_v1_auth',
   CURRICULUM: 'ispeaktu_v1_curriculum',
   AUTH_STATUS: 'ispeaktu_v1_auth_status',
-  USER_NAME: 'ispeaktu_v1_user_name'
+  USER_NAME: 'ispeaktu_v1_user_name',
+  UI_STATE: 'ispeaktu_v1_ui_state'
 };
 
 // --- Tiered Feedback System ---
@@ -157,6 +158,16 @@ const TEACHER_ACCESS_CODE = "teacher";
 
 const readSavedAuth = () => {
   const raw = localStorage.getItem(STORAGE_KEYS.AUTH);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+};
+
+const readSavedUiState = () => {
+  const raw = localStorage.getItem(STORAGE_KEYS.UI_STATE);
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -251,7 +262,7 @@ const getLessonFailureRates = (progressRecords, curriculum) => {
 };
 
 export default function App() {
-  const [view, setView] = useState('student'); 
+  const [view, setView] = useState(() => readSavedUiState()?.view || 'student'); 
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => localStorage.getItem(STORAGE_KEYS.AUTH_STATUS) === 'true' || Boolean(readSavedAuth())
   );
@@ -259,10 +270,16 @@ export default function App() {
   const [allStudentsProgress, setAllStudentsProgress] = useState([]);
   const [allReminders, setAllReminders] = useState([]);
   const [curriculum, setCurriculum] = useState([]);
-  const [selectedMaterialId, setSelectedMaterialId] = useState('');
+  const [selectedMaterialId, setSelectedMaterialId] = useState(
+    () => readSavedUiState()?.selectedMaterialId || ''
+  );
   const [activeLesson, setActiveLesson] = useState(null);
-  const [showAnalysis, setShowAnalysis] = useState(null);
-  const [teacherSearchTerm, setTeacherSearchTerm] = useState('');
+  const [showAnalysis, setShowAnalysis] = useState(
+    () => readSavedUiState()?.showAnalysis || null
+  );
+  const [teacherSearchTerm, setTeacherSearchTerm] = useState(
+    () => readSavedUiState()?.teacherSearchTerm || ''
+  );
   const [reviewRecord, setReviewRecord] = useState(null);
 
   const [quizState, setQuizState] = useState({
@@ -292,7 +309,7 @@ export default function App() {
     try {
       if (!HAS_SUPABASE) {
         setCurriculum([]);
-        return;
+        return [];
       }
       // 1. Fetch Materials with nested Lessons
       const { data: materialsData, error: materialsError } = await supabase
@@ -321,10 +338,12 @@ export default function App() {
       if (formattedCurriculum.length > 0 && !selectedMaterialId) {
         setSelectedMaterialId(formattedCurriculum[0].id);
       }
+      return formattedCurriculum;
     } catch (error) {
       console.error("Error loading curriculum from Supabase:", error.message);
       // Fallback to empty data if DB fails
       setCurriculum([]);
+      return [];
     }
   };
 
@@ -348,7 +367,7 @@ export default function App() {
 
         // 2. TRIGGER SUPABASE FETCH
         // This is the line that was missing!
-        await fetchCurriculum();
+        const loadedCurriculum = await fetchCurriculum();
 
         // 3. Load other local items
         const savedProgress = localStorage.getItem(STORAGE_KEYS.PROGRESS);
@@ -361,6 +380,29 @@ export default function App() {
         if (savedReminders) {
           const parsed = JSON.parse(savedReminders);
           setAllReminders(Array.isArray(parsed) ? parsed : []);
+        }
+
+        // 4. Restore UI state after curriculum is available
+        const savedUi = readSavedUiState();
+        if (savedUi) {
+          if (savedUi.view) setView(savedUi.view);
+          if (savedUi.selectedMaterialId) setSelectedMaterialId(savedUi.selectedMaterialId);
+          if (savedUi.quizState) setQuizState({
+            currentQuestion: savedUi.quizState.currentQuestion ?? 0,
+            score: savedUi.quizState.score ?? 0,
+            showFeedback: Boolean(savedUi.quizState.showFeedback),
+            selectedOption: savedUi.quizState.selectedOption ?? null,
+            completed: Boolean(savedUi.quizState.completed),
+            responses: Array.isArray(savedUi.quizState.responses) ? savedUi.quizState.responses : []
+          });
+          if (savedUi.showAnalysis !== undefined) setShowAnalysis(savedUi.showAnalysis);
+          if (savedUi.teacherSearchTerm !== undefined) setTeacherSearchTerm(savedUi.teacherSearchTerm || '');
+
+          if (savedUi.activeLessonId) {
+            const allLessons = (loadedCurriculum || []).flatMap(m => m.lessons || []);
+            const restoredLesson = allLessons.find(l => l.id === savedUi.activeLessonId) || null;
+            setActiveLesson(restoredLesson);
+          }
         }
 
       } catch (err) {
@@ -533,6 +575,7 @@ export default function App() {
     localStorage.removeItem(STORAGE_KEYS.AUTH);
     localStorage.removeItem(STORAGE_KEYS.AUTH_STATUS);
     localStorage.removeItem(STORAGE_KEYS.USER_NAME);
+    localStorage.removeItem(STORAGE_KEYS.UI_STATE);
     setUser(null); setIsAuthenticated(false); setIsTeacherAuthorized(false); setUserName(''); setView('student'); setEmail('');
   };
 
@@ -720,6 +763,18 @@ export default function App() {
     teacherSearchTerm.trim() === '' ? allStudentsProgress : allStudentsProgress.filter(p => (String(p.student_name) || '').toLowerCase().includes(teacherSearchTerm.toLowerCase())), 
     [allStudentsProgress, teacherSearchTerm]
   );
+
+  useEffect(() => {
+    const uiState = {
+      view,
+      selectedMaterialId,
+      activeLessonId: activeLesson?.id || null,
+      quizState,
+      showAnalysis,
+      teacherSearchTerm
+    };
+    localStorage.setItem(STORAGE_KEYS.UI_STATE, JSON.stringify(uiState));
+  }, [view, selectedMaterialId, activeLesson, quizState, showAnalysis, teacherSearchTerm]);
 
   if (!authReady) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><RefreshCw className="animate-spin text-indigo-600" size={40} /></div>;
 
