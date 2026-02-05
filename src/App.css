@@ -36,26 +36,24 @@
     transform: rotate(360deg);
   }
 }
-/* Mobile Optimization for Headers */
+
+/* --- MOBILE ONE-LINE FIX --- */
 @media screen and (max-width: 480px) {
-  /* This targets your main titles like "iSpeakTu Quiz" */
-  h1, .app-title {
-    font-size: 1.5rem !important; /* Shrinks the font slightly */
-    white-space: nowrap;          /* Forces text to stay on one line */
-    letter-spacing: -0.5px;       /* Tightens the letters together */
+  /* Targets "iSpeakTu Quiz" and main headings */
+  h1, .App-header h1, .title {
+    font-size: 1.6rem !important; 
+    white-space: nowrap !important;
+    letter-spacing: -0.5px;
   }
 
-  /* Target your "Materials", "Lessons", and "Questions" labels */
-  .section-header, .tab-name, h2 {
+  /* Targets "Materials", "Lessons", "Questions" */
+  h2, h3, .section-title {
     font-size: 1.2rem !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis; /* If it still won't fit, it will show '...' instead of breaking */
+    white-space: nowrap !important;
   }
 
-  /* Adjust padding so the text has more room to breathe on the sides */
-  .container, header {
-    padding-left: 10px !important;
-    padding-right: 10px !important;
+  /* Reduces side padding so text has more room */
+  .App-header {
+    padding: 0 10px;
   }
 }
