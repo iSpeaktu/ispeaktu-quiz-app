@@ -31,15 +31,15 @@ import {
   Check // Added missing Check icon
 } from 'lucide-react';
 
-import supabase from './supabaseClient';
+import { supabase, HAS_SUPABASE } from './supabaseClient';
 
 // --- Centralized Theme Object ---
 const THEME = {
   colors: {
     primary: '#4F46E5',          // Indigo 600 - Main brand color for buttons, nav
-    conversational: '#2563EB',   // Blue 600 - Conversational English track (matched with Business)
+    conversational: '#2563EB',   // Blue 600 - Conversational English material (matched with Business)
     verified: '#059669',         // Emerald 700 - Verification checkmarks & Advanced tier
-    business: '#2563EB',         // Blue 600 - Business English track
+    business: '#2563EB',         // Blue 600 - Business English material
     danger: '#E11D48',           // Rose 600 - Beginner feedback & failure alerts
     warning: '#D97706',          // Amber 600 - Warning/intermediate states
     neutral: '#F8FAFC',          // Slate 50 - Light backgrounds
@@ -99,7 +99,7 @@ const FEEDBACK_TIERS = {
     notes: [
       "you're making progress—let's build on this!",
       "good effort, but there's more to learn.",
-      "you're on the right track!",
+      "you're on the right path!",
       "keep pushing—improvement is coming!",
       "consistency will get you to the next level."
     ]
@@ -217,11 +217,11 @@ const getLessonFailureRates = (progressRecords, curriculum) => {
   });
   
   // Find lesson names
-  curriculum.forEach(track => {
-    track.lessons?.forEach(lesson => {
+  curriculum.forEach(material => {
+    material.lessons?.forEach(lesson => {
       if (lessonStats[lesson.id]) {
         lessonStats[lesson.id].name = lesson.title;
-        lessonStats[lesson.id].trackName = track.name;
+        lessonStats[lesson.id].materialName = material.name;
       }
     });
   });
@@ -230,7 +230,7 @@ const getLessonFailureRates = (progressRecords, curriculum) => {
     .map(([id, stats]) => ({
       id,
       name: stats.name,
-      trackName: stats.trackName,
+      materialName: stats.materialName,
       failureRate: stats.total > 0 ? Math.round((stats.failed / stats.total) * 100) : 0,
       totalAttempts: stats.total,
       failedAttempts: stats.failed
@@ -240,12 +240,14 @@ const getLessonFailureRates = (progressRecords, curriculum) => {
 
 export default function App() {
   const [view, setView] = useState('student'); 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => Boolean(localStorage.getItem(STORAGE_KEYS.AUTH))
+  );
   const [isTeacherAuthorized, setIsTeacherAuthorized] = useState(false);
   const [allStudentsProgress, setAllStudentsProgress] = useState([]);
   const [allReminders, setAllReminders] = useState([]);
   const [curriculum, setCurriculum] = useState([]);
-  const [selectedTrackId, setSelectedTrackId] = useState('');
+  const [selectedMaterialId, setSelectedMaterialId] = useState('');
   const [activeLesson, setActiveLesson] = useState(null);
   const [showAnalysis, setShowAnalysis] = useState(null);
   const [teacherSearchTerm, setTeacherSearchTerm] = useState('');
@@ -265,43 +267,54 @@ export default function App() {
   const [accessCode, setAccessCode] = useState('');
   const [loginError, setLoginError] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(
+    () => !Boolean(localStorage.getItem(STORAGE_KEYS.AUTH))
+  );
   const [studentProfile, setStudentProfile] = useState(null);
   const [user, setUser] = useState(null);
-
-  // Define HAS_SUPABASE constant before any functions that use it
-  const HAS_SUPABASE = Boolean(process.env.REACT_APP_SUPABASE_URL && process.env.REACT_APP_SUPABASE_ANON_KEY);
 
   // --- fetchCurriculum function moved inside component ---
   const fetchCurriculum = async () => {
     try {
-      // 1. Fetch Materials and Lessons in parallel from new schema
-      const [materialsResponse, lessonsResponse] = await Promise.all([
-        supabase.from('materials').select('*').order('order_index'),
-        supabase.from('lessons').select('*').order('order_index')
-      ]);
+      if (!HAS_SUPABASE) {
+        setCurriculum([]);
+        return;
+      }
+      // 1. Fetch Materials with nested Lessons and Questions
+      const { data: materialsData, error: materialsError } = await supabase
+        .from('materials')
+        .select('*, lessons(*, questions(*))')
+        .order('order_index')
+        .order('order_index', { foreignTable: 'lessons' })
+        .order('order_index', { foreignTable: 'questions' });
 
-      if (materialsResponse.error) throw materialsResponse.error;
-      if (lessonsResponse.error) throw lessonsResponse.error;
+      if (materialsError) throw materialsError;
 
-      // 2. Format the data to match UI's expected 'MATERIAL -> LESSONS' structure
-      // Filter lessons by material_id to match new schema
-      const formattedCurriculum = materialsResponse.data.map(material => ({
+      // 2. Normalize and sort nested data
+      const formattedCurriculum = (materialsData || []).map(material => ({
         ...material,
         name: material.name || 'Untitled Material',
-        lessons: lessonsResponse.data.filter(lesson => lesson.material_id === material.id)
+        lessons: (material.lessons || [])
+          .slice()
+          .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+          .map(lesson => ({
+            ...lesson,
+            questions: (lesson.questions || [])
+              .slice()
+              .sort((a, b) => (a.order_index ?? a.id ?? 0) - (b.order_index ?? b.id ?? 0))
+          }))
       }));
 
       setCurriculum(formattedCurriculum);
       
       // Set initial material if none is selected
-      if (formattedCurriculum.length > 0 && !selectedTrackId) {
-        setSelectedTrackId(formattedCurriculum[0].id);
+      if (formattedCurriculum.length > 0 && !selectedMaterialId) {
+        setSelectedMaterialId(formattedCurriculum[0].id);
       }
     } catch (error) {
       console.error("Error loading curriculum from Supabase:", error.message);
-      // Fallback to local data if DB fails
-      setCurriculum(DEFAULT_ISPEAKTU_DATA);
+      // Fallback to empty data if DB fails
+      setCurriculum([]);
     }
   };
 
@@ -316,7 +329,13 @@ export default function App() {
           setUserName(parsedAuth.displayName || '');
           setIsAuthenticated(true);
           if (parsedAuth.isTeacher) setIsTeacherAuthorized(true);
+          setAuthReady(true);
+          await fetchRemoteForUser(parsedAuth);
+        } else {
+          setAuthReady(true);
         }
+        // Clear any legacy cached curriculum data
+        localStorage.removeItem(STORAGE_KEYS.CURRICULUM);
 
         // 2. TRIGGER SUPABASE FETCH
         // This is the line that was missing!
@@ -338,14 +357,14 @@ export default function App() {
       } catch (err) {
         console.error("Initialization error", err);
       } finally {
-        setIsLoading(false);
+        setAuthReady(true);
       }
     };
     loadData();
   }, []);
 
   const currentMaterial = useMemo(() => {
-    const material = curriculum.find(m => m.id === selectedTrackId) || curriculum[0];
+    const material = curriculum.find(m => m.id === selectedMaterialId) || curriculum[0];
     return material ? {
       ...material,
       id: material.id || null,
@@ -353,7 +372,7 @@ export default function App() {
       description: material.description || 'No description available',
       lessons: material.lessons || [],
     } : null;
-  }, [curriculum, selectedTrackId]);
+  }, [curriculum, selectedMaterialId]);
   
   const materialsList = useMemo(() => {
     if (!curriculum || curriculum.length === 0) return [];
@@ -637,7 +656,7 @@ export default function App() {
   };
 
   const handleNextQuestion = () => {
-    const questions = activeLesson.questions;
+    const questions = Array.isArray(activeLesson?.questions) ? activeLesson.questions : [];
     if (quizState.currentQuestion + 1 < questions.length) {
       setQuizState(prev => ({ ...prev, currentQuestion: prev.currentQuestion + 1, selectedOption: null, showFeedback: false }));
     } else {
@@ -652,13 +671,13 @@ export default function App() {
     
     // Create a predictable ID: user + material + lesson
     // This prevents duplicates in the database
-    const progressId = `${user.uid}_${selectedTrackId}_${activeLesson.id}`;
+    const progressId = `${user.uid}_${selectedMaterialId}_${activeLesson.id}`;
     
     const newRecord = {
       id: progressId, 
       student_id: user.uid, 
       student_name: user.displayName, 
-      material_id: selectedTrackId,  // DB field stores material reference
+      material_id: selectedMaterialId,  // DB field stores material reference
       lesson_id: activeLesson.id, 
       score: scoreToSave, 
       total: activeLesson.questions.length || 1, 
@@ -690,7 +709,7 @@ export default function App() {
     [allStudentsProgress, teacherSearchTerm]
   );
 
-  if (isLoading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><RefreshCw className="animate-spin text-indigo-600" size={40} /></div>;
+  if (!authReady) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><RefreshCw className="animate-spin text-indigo-600" size={40} /></div>;
 
   if (!isAuthenticated) {
     return (
@@ -762,13 +781,13 @@ export default function App() {
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Study Materials</p>
                 {curriculum && curriculum.length > 0 && materialsList && materialsList.length > 0 ? materialsList.map(material => {
                   const perc = material.totalLessons > 0 ? Math.round((material.completedLessons / material.totalLessons) * 100) : 0;
-                  const isSelected = selectedTrackId === material.id;
+                  const isSelected = selectedMaterialId === material.id;
                   const isBusiness = material.id === 'business-english';
                   const isConversational = String(material.id).toLowerCase().includes('conversational');
                   return (
                     <button
                       key={material.id}
-                      onClick={() => setSelectedTrackId(material.id)}
+                      onClick={() => setSelectedMaterialId(material.id)}
                       className={`w-full p-6 rounded-[2rem] border-2 text-left transition-all duration-300 group relative overflow-hidden flex flex-col h-64 bg-white 
     ${isSelected ? 'border-transparent' : 'border-slate-200 hover:border-slate-400 hover:shadow-lg'}`}
                       style={isSelected ? { 
@@ -1088,7 +1107,7 @@ export default function App() {
               <button onClick={() => setActiveLesson(null)} className="p-3 hover:bg-slate-100 rounded-full transition-colors"><X size={28} /></button>
             </div>
             <div className="p-10 overflow-y-auto">
-              {activeLesson.questions.length > 0 ? (
+              {Array.isArray(activeLesson.questions) && activeLesson.questions.length > 0 ? (
                 !quizState.completed ? (
                   <div className="space-y-8">
                     <div className="space-y-2">
@@ -1102,16 +1121,16 @@ export default function App() {
                     </div>
 
                     <div className="bg-slate-100/60 p-10 rounded-[3rem] border border-slate-200 text-2xl font-black text-slate-800 shadow-inner text-center">
-                      {String(activeLesson.questions[quizState.currentQuestion].question)}
+                      {String(activeLesson.questions[quizState.currentQuestion]?.question ?? '')}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      {activeLesson.questions[quizState.currentQuestion].options.map((opt, i) => (
+                      {(activeLesson.questions[quizState.currentQuestion]?.options || []).map((opt, i) => (
                         <button key={i} disabled={quizState.showFeedback} onClick={() => handleOptionSelect(opt)} className={`p-7 rounded-[2rem] text-left font-bold text-base transition-all duration-300 border-4 transform active:scale-95 hover:scale-105 ${quizState.showFeedback && opt === activeLesson.questions[quizState.currentQuestion].answer ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : quizState.showFeedback && quizState.selectedOption === opt ? 'bg-rose-50 border-rose-500 text-rose-700' : quizState.selectedOption === opt ? 'bg-indigo-600 text-white border-indigo-600 shadow-xl' : 'bg-white hover:border-indigo-300 border-slate-200 shadow-sm hover:shadow-md'}`}>
                           <span className="mr-3 opacity-40 font-black">{String.fromCharCode(65 + i)}.</span> {String(opt)}
                         </button>
                       ))}
                     </div>
-                    {quizState.showFeedback && <div className="p-6 bg-indigo-50 rounded-[2rem] text-sm font-bold border-2 border-indigo-200 flex gap-4 items-start relative before:content-[''] before:absolute before:-left-2 before:top-6 before:w-0 before:h-0 before:border-l-6 before:border-l-transparent before:border-t-6 before:border-t-indigo-50"><Info className="text-indigo-600 shrink-0 mt-0.5" size={20} /> <div><p className="text-indigo-600 uppercase text-[10px] font-black mb-1">💡 Teacher Feedback</p><p className="text-slate-700">{String(activeLesson.questions[quizState.currentQuestion].feedback)}</p></div></div>}
+                    {quizState.showFeedback && <div className="p-6 bg-indigo-50 rounded-[2rem] text-sm font-bold border-2 border-indigo-200 flex gap-4 items-start relative before:content-[''] before:absolute before:-left-2 before:top-6 before:w-0 before:h-0 before:border-l-6 before:border-l-transparent before:border-t-6 before:border-t-indigo-50"><Info className="text-indigo-600 shrink-0 mt-0.5" size={20} /> <div><p className="text-indigo-600 uppercase text-[10px] font-black mb-1">💡 Teacher Feedback</p><p className="text-slate-700">{String(activeLesson.questions[quizState.currentQuestion]?.feedback ?? '')}</p></div></div>}
                     <button disabled={!quizState.selectedOption} onClick={quizState.showFeedback ? handleNextQuestion : handleCheckAnswer} className="w-full py-6 text-white rounded-[2rem] font-black text-2xl shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" style={{backgroundColor: THEME.colors.primary}} onMouseEnter={(e) => !quizState.selectedOption ? null : e.target.style.opacity = '0.9'} onMouseLeave={(e) => !quizState.selectedOption ? null : e.target.style.opacity = '1'}>
                       {quizState.showFeedback ? 'Continue' : 'Check Answer'}
                     </button>
