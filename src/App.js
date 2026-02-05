@@ -838,8 +838,8 @@ export default function App() {
 
       <main className="max-w-6xl mx-auto p-4 md:p-8">
         {view === 'student' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-6">
+            <div className="space-y-4">
               {studentReminders.length > 0 && (
                 <section className="bg-amber-50 border-2 border-amber-200 p-6 rounded-[2rem] shadow-lg shadow-amber-100/50 animate-in slide-in-from-top-4">
                   <div className="flex items-center gap-3 mb-4"><div className="bg-amber-500 text-white p-2 rounded-xl"><BellRing size={20} /></div><h3 className="font-black text-amber-900">Action Required</h3></div>
@@ -857,7 +857,7 @@ export default function App() {
                 </section>
               )}
               
-              <section className="space-y-4">
+              <section className="space-y-3">
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Study Materials</p>
                 {curriculum && curriculum.length > 0 && materialsList && materialsList.length > 0 ? materialsList.map(material => {
                   const perc = material.totalLessons > 0 ? Math.round((material.completedLessons / material.totalLessons) * 100) : 0;
@@ -868,20 +868,19 @@ export default function App() {
                     <button
                       key={material.id}
                       onClick={() => setSelectedMaterialId(material.id)}
-                      className={`w-full p-6 rounded-[2rem] border-2 text-left transition-all duration-300 group relative overflow-hidden flex flex-col h-64 bg-white 
-    ${isSelected ? 'border-transparent' : 'border-slate-200 hover:border-slate-400 hover:shadow-lg'}`}
-                      style={isSelected ? { 
-    backgroundColor: '#FFFFFF', 
-    borderColor: '#E0E7FF', 
-    boxShadow: `0 8px 30px ${THEME.colors.primary}22` 
+                      className={`w-full px-4 py-3 rounded-xl border text-left transition-all duration-300 flex items-center justify-between bg-white 
+    ${isSelected ? 'border-transparent' : 'border-slate-200 hover:border-slate-300'}`}
+                      style={isSelected ? {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E0E7FF',
+    boxShadow: `0 6px 16px ${THEME.colors.primary}22`
   } : {}}
                     >
-                      <div className="flex-1 flex flex-col justify-end">
-                        <div className={`font-extrabold text-lg mb-2`} style={isSelected ? { color: THEME.colors.primary } : {}}>{String(material.name || 'Untitled Material')}</div>
-                        <div className={`flex items-center justify-between`}>
-                          <p className={`text-xs font-black uppercase ${isSelected ? 'text-slate-600' : isBusiness ? 'text-slate-500' : 'text-slate-400'}`}>{material.completedLessons} / {material.totalLessons} Lessons Completed</p>
-                          <div className={`px-3 py-1 rounded-full text-[11px] font-black inline-block`} style={isSelected ? { backgroundColor: THEME.colors.primary, color: '#fff' } : { backgroundColor: 'transparent', color: THEME.colors.primary }}>{perc}%</div>
-                        </div>
+                      <div className={`font-extrabold text-sm truncate`} style={isSelected ? { color: THEME.colors.primary } : {}}>
+                        {String(material.name || 'Untitled Material')}
+                      </div>
+                      <div className={`ml-3 px-2 py-0.5 rounded-full text-[10px] font-black`} style={isSelected ? { backgroundColor: THEME.colors.primary, color: '#fff' } : { backgroundColor: '#F1F5F9', color: '#64748B' }}>
+                        {perc}%
                       </div>
                     </button>
                   );
