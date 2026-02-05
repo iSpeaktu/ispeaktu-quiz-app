@@ -793,26 +793,29 @@ export default function App() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/40 flex flex-col md:flex-row font-sans">
         <div className="hidden md:flex md:w-1/2 p-12 text-white flex-col justify-between relative overflow-hidden" style={{backgroundColor: THEME.colors.primary}}>
           <div className="relative z-10">
             <div className="flex items-center gap-2 text-2xl font-bold mb-12"><GraduationCap size={40} /><span>iSpeaktu Quiz</span></div>
             <h1 className="text-5xl font-extrabold mb-6 leading-tight">Empower Your <span className="text-white/60">Fluency.</span></h1>
-            <p className="text-lg opacity-90 max-w-md">Master English with verified progress tracking and real-time quizzes.</p>
+            <p className="text-lg opacity-90 max-w-md">Short, friendly lessons. Quick wins every day.</p>
           </div>
           <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full blur-3xl" style={{backgroundColor: 'rgba(255, 255, 255, 0.1)'}}></div>
         </div>
         <div className="flex-1 flex items-center justify-center p-6 md:p-12">
-          <div className="w-full max-w-md space-y-8">
-            <h2 className="text-3xl font-bold text-slate-800">Welcome</h2>
+          <div className="w-full max-w-md space-y-6 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-[2rem] p-8 shadow-xl">
+            <div>
+              <h2 className="text-3xl font-black text-slate-800">Welcome back</h2>
+              <p className="text-sm text-slate-500 mt-2">Pick a name and start learning in seconds.</p>
+            </div>
             <form onSubmit={handleLogin} className="space-y-6">
-              <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Display Name" className="w-full px-4 py-3 rounded-xl border outline-none" style={{focusRingColor: THEME.colors.primary}} required />
+              <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Display Name" className="w-full px-4 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-indigo-500/10" required />
               <div className="grid grid-cols-2 gap-4">
-                <button type="button" onClick={() => setView('student')} className={`p-4 rounded-xl border-2 transition-all font-bold ${view === 'student' ? 'bg-indigo-50 text-slate-400 border-slate-200' : 'text-slate-400 border-slate-200'}`} style={view === 'student' ? {borderColor: THEME.colors.primary, color: THEME.colors.primary, backgroundColor: '#f0f4ff'} : {}}>Student</button>
-                <button type="button" onClick={() => setView('teacher')} className={`p-4 rounded-xl border-2 transition-all font-bold ${view === 'teacher' ? 'bg-indigo-50 text-slate-400 border-slate-200' : 'text-slate-400 border-slate-200'}`} style={view === 'teacher' ? {borderColor: THEME.colors.primary, color: THEME.colors.primary, backgroundColor: '#f0f4ff'} : {}}>Teacher</button>
+                <button type="button" onClick={() => setView('student')} className={`p-4 rounded-2xl border-2 transition-all font-bold ${view === 'student' ? 'bg-indigo-50 text-slate-700 border-indigo-200' : 'text-slate-500 border-slate-200 hover:border-slate-300'}`}>Student</button>
+                <button type="button" onClick={() => setView('teacher')} className={`p-4 rounded-2xl border-2 transition-all font-bold ${view === 'teacher' ? 'bg-indigo-50 text-slate-700 border-indigo-200' : 'text-slate-500 border-slate-200 hover:border-slate-300'}`}>Teacher</button>
               </div>
-              {view === 'teacher' && <div className="space-y-2"><input type="password" value={accessCode} onChange={(e) => setAccessCode(e.target.value)} placeholder="Teacher Code" className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-indigo-500 outline-none" required />{loginError && <p className="text-rose-600 text-xs font-bold">{loginError}</p>}</div>}
-              <button type="submit" className="w-full text-white py-4 rounded-xl font-bold text-lg shadow-lg transition-colors" style={{backgroundColor: THEME.colors.primary}} onMouseEnter={(e) => e.target.style.opacity = '0.9'} onMouseLeave={(e) => e.target.style.opacity = '1'}>Start Learning</button>
+              {view === 'teacher' && <div className="space-y-2"><input type="password" value={accessCode} onChange={(e) => setAccessCode(e.target.value)} placeholder="Teacher Code" className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/10 outline-none" required />{loginError && <p className="text-rose-600 text-xs font-bold">{loginError}</p>}</div>}
+              <button type="submit" className="w-full text-white py-4 rounded-2xl font-black text-lg shadow-lg transition-all hover:shadow-xl" style={{backgroundColor: THEME.colors.primary}} onMouseEnter={(e) => e.target.style.opacity = '0.95'} onMouseLeave={(e) => e.target.style.opacity = '1'}>Start Learning</button>
             </form>
           </div>
         </div>
@@ -821,13 +824,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-      <nav className="bg-white/70 backdrop-blur-md border-b border-slate-100/50 sticky top-0 z-10 shadow-sm px-4 h-16 flex items-center justify-between transition-all duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/40 text-slate-900 font-sans">
+      <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10 shadow-sm px-4 h-16 flex items-center justify-between transition-all duration-300">
         <div className="flex items-center gap-2 font-black text-lg" style={{color: THEME.colors.primary}}><GraduationCap size={28} /><span>iSpeaktu Quiz</span></div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-lg transition-all duration-300">
-            <button onClick={() => setView('student')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all duration-300 ${view === 'student' ? 'bg-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`} style={view === 'student' ? {color: THEME.colors.primary} : {}}>Student</button>
-            <button onClick={() => isTeacherAuthorized ? setView('teacher') : setShowAuthModal(true)} className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all duration-300 ${view === 'teacher' ? 'bg-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`} style={view === 'teacher' ? {color: THEME.colors.primary} : {}}>Teacher</button>
+          <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-full transition-all duration-300">
+            <button onClick={() => setView('student')} className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-300 ${view === 'student' ? 'bg-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`} style={view === 'student' ? {color: THEME.colors.primary} : {}}>Student</button>
+            <button onClick={() => isTeacherAuthorized ? setView('teacher') : setShowAuthModal(true)} className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-300 ${view === 'teacher' ? 'bg-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`} style={view === 'teacher' ? {color: THEME.colors.primary} : {}}>Teacher</button>
           </div>
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200/50">
             <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black border border-indigo-200 transition-all duration-300">{String(userName)[0] || '?'}</div>
@@ -893,14 +896,14 @@ export default function App() {
             </div>
 
             <div className="flex-1 space-y-6">
-              <section className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-6 md:p-8">
+              <section className="bg-white/90 rounded-[2rem] border border-slate-200 shadow-sm p-6 md:p-8">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                   <div>
                     <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Current Material</p>
                     <h2 className="text-3xl md:text-4xl font-black text-slate-900">{String(currentMaterial?.name || 'Untitled Material')}</h2>
                     <p className="text-slate-500 text-sm mt-2">{String(currentMaterial?.description || 'No description available')}</p>
                   </div>
-                  <div className="bg-slate-900 text-white rounded-[2rem] p-6 w-full lg:w-[360px] shadow-xl">
+                  <div className="bg-slate-900 text-white rounded-[1.5rem] p-6 w-full lg:w-[360px] shadow-xl">
                     <div className="flex items-center justify-between mb-4">
                       <p className="text-[10px] uppercase font-black tracking-widest text-slate-300">Current Status</p>
                       <span className="text-xs font-black text-slate-300">{averageScore}% Avg</span>
@@ -931,12 +934,12 @@ export default function App() {
                 </div>
               </section>
               {currentMaterial ? (
-                <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white/90 rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
                   <div className="p-6 md:p-10 border-b bg-slate-50/30">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                       <div>
                         <div className="flex items-center gap-3 mb-1">
-                           <h2 className="text-3xl font-black text-slate-800">{String(currentMaterial.name || 'Untitled Material')}</h2>
+                           <h2 className="text-2xl md:text-3xl font-black text-slate-800">{String(currentMaterial.name || 'Untitled Material')}</h2>
                            <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-[10px] font-black rounded-full uppercase">Current Material</span>
                         </div>
                         <p className="text-slate-500 text-sm">{String(currentMaterial.description || 'No description available')}</p>
@@ -949,7 +952,7 @@ export default function App() {
                       </div>
                     </div>
                     
-                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-6">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-6">
                       <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner" style={{backgroundColor: '#f0f4ff', color: THEME.colors.primary}}>
                         <Target size={28} />
                       </div>
@@ -980,14 +983,14 @@ export default function App() {
                       const isLocked = lockStatus?.isLocked || false;
                       
                       return (
-                        <div key={lesson.id} className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-all group">
+                        <div key={lesson.id} className="p-5 md:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition-all group">
                           <div className="flex items-center gap-4 sm:gap-6 flex-1">
                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 transition-all ${isVerified ? 'text-white border-2' : record ? 'bg-white text-black border-black' : 'bg-slate-50 text-slate-400 border-dashed border-slate-300'}`} style={isVerified ? {backgroundColor: '#ECFDF5', borderColor: '#A7F3D0', boxShadow: '0 4px 12px rgba(209, 250, 229, 0.5)'} : {}}>
                               {isVerified ? <CheckCircle size={28} color="#059669" /> : idx + 1}
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center justify-between gap-3">
-                                <h4 className="font-semibold text-base text-slate-900">{String(lesson.title)}</h4>
+                                <h4 className="font-semibold text-[15px] text-slate-900">{String(lesson.title)}</h4>
                                 <div className="flex items-center gap-2">
                                   {isMilestone && <span className="text-[10px] px-2.5 py-1 rounded-full font-black bg-black text-white">Review</span>}
                                   {perc !== null && <span className={`text-[10px] px-2.5 py-1 rounded-full font-black ${isVerified ? 'bg-black text-white' : 'bg-slate-200 text-black'}`}>{perc}%</span>}
@@ -999,7 +1002,7 @@ export default function App() {
                               </div>
                             </div>
                           </div>
-                          <button disabled={isLocked} onClick={() => handleStartQuiz(lesson)} className={`w-full sm:w-auto min-h-[44px] px-6 sm:px-8 py-3 rounded-2xl text-sm font-black transition-all duration-300 transform active:scale-95 hover:scale-105 ${isLocked ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : record ? 'bg-white text-black border-2 border-black hover:bg-black hover:text-white' : 'bg-black text-white shadow-xl hover:bg-slate-800'}`}>
+                          <button disabled={isLocked} onClick={() => handleStartQuiz(lesson)} className={`w-full sm:w-auto min-h-[44px] px-6 sm:px-8 py-3 rounded-2xl text-sm font-black transition-all duration-300 transform active:scale-95 hover:scale-105 ${isLocked ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : record ? 'bg-white text-black border-2 border-black hover:bg-black hover:text-white' : 'bg-black text-white shadow-lg hover:bg-slate-800'}`}>
                             {isLocked ? 'Locked' : record ? 'Review / Retake' : 'Start Lesson'}
                           </button>
                         </div>
