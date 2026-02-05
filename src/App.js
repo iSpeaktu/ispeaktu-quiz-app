@@ -796,7 +796,7 @@ export default function App() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/40 flex flex-col md:flex-row font-sans">
         <div className="hidden md:flex md:w-1/2 p-12 text-white flex-col justify-between relative overflow-hidden" style={{backgroundColor: THEME.colors.primary}}>
           <div className="relative z-10">
-            <div className="flex items-center gap-2 text-2xl font-bold mb-12"><GraduationCap size={40} /><span>iSpeaktu Quiz</span></div>
+            <div className="flex items-center gap-2 text-2xl font-bold mb-12"><GraduationCap size={40} /><span>iSpeaktu</span></div>
             <h1 className="text-5xl font-extrabold mb-6 leading-tight">Empower Your <span className="text-white/60">Fluency.</span></h1>
             <p className="text-lg opacity-90 max-w-md">Short, friendly lessons. Quick wins every day.</p>
           </div>
@@ -826,7 +826,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/40 text-slate-900 font-sans">
       <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10 shadow-sm px-4 h-16 flex items-center justify-between transition-all duration-300">
-        <div className="flex items-center gap-2 font-black text-lg" style={{color: THEME.colors.primary}}><GraduationCap size={28} /><span>iSpeaktu Quiz</span></div>
+        <div className="flex items-center gap-2 font-black text-lg" style={{color: THEME.colors.primary}}><GraduationCap size={28} /><span>iSpeaktu</span></div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-full transition-all duration-300">
             <button onClick={() => setView('student')} className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-300 ${view === 'student' ? 'bg-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`} style={view === 'student' ? {color: THEME.colors.primary} : {}}>Student</button>
